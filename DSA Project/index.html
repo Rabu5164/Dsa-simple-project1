@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Polling Center Simulation</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.container {
+    text-align: center;
+    padding: 20px;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+.card {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    margin: 15px auto;
+    border-radius: 15px;
+    width: 80%;
+    max-width: 600px;
+}
+
+input, select {
+    padding: 10px;
+    margin: 10px;
+    border: none;
+    border-radius: 8px;
+}
+
+.buttons button {
+    padding: 10px 15px;
+    margin: 5px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button {
+    background: #ffffff;
+    color: #333;
+}
+
+button:hover {
+    opacity: 0.8;
+}
+
+.lines {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.line-box {
+    background: rgba(255,255,255,0.15);
+    margin: 10px;
+    padding: 15px;
+    border-radius: 12px;
+    width: 200px;
+}
+
+.result {
+    margin-top: 20px;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+    <h1>🗳 Polling Center Simulation</h1>
+
+    <div class="card">
+        <input type="text" id="name" placeholder="Enter voter name">
+        
+        <select id="symbol">
+            <option value="Star">⭐ Star</option>
+            <option value="Circle">🔵 Circle</option>
+            <option value="Triangle">🔺 Triangle</option>
+        </select>
+
+        <div class="buttons">
+            <button onclick="addVoter()">➕ Add</button>
+            <button onclick="castVote()">🗳 Vote</button>
+            <button onclick="downloadResult()">💾 Save</button>
+            <button onclick="resetSystem()">🔄 Reset</button>
+        </div>
+    </div>
+
+    <div id="lines" class="lines"></div>
+
+    <div class="card result">
+        <h2>📊 Result</h2>
+        <p>⭐ Star: <span id="star">0</span></p>
+        <p>🔵 Circle: <span id="circle">0</span></p>
+        <p>🔺 Triangle: <span id="triangle">0</span></p>
+    </div>
+
+</div>
+
+<script>
+const LINES = 3;
+
+let lines = [[], [], []];
+let completed = [];
+
+let star = 0, circle = 0, triangle = 0;
+
+function getShortestLine() {
+    let min = 0;
+    for (let i = 1; i < LINES; i++) {
+        if (lines[i].length < lines[min].length) {
+            min = i;
+        }
+    }
+    return min;
+}
+
+function addVoter() {
+    let name = document.getElementById("name").value;
+    let symbol = document.getElementById("symbol").value;
+
+    if (!name) {
+        alert("Enter name!");
+        return;
+    }
+
+    let voter = { name, symbol };
+
+    let line = getShortestLine();
+    lines[line].push(voter);
+
+    document.getElementById("name").value = "";
+    render();
+}
+
+function castVote() {
+
+    for (let i = 0; i < LINES; i++) {
+        if (lines[i].length > 0) {
+
+            let voter = lines[i].shift();
+
+            if (voter.symbol === "Star") star++;
+            else if (voter.symbol === "Circle") circle++;
+            else triangle++;
+
+            completed.push(voter);
+        }
+    }
+
+    render();
+}
+
+function resetSystem() {
+    lines = [[], [], []];
+    completed = [];
+    star = circle = triangle = 0;
+    render();
+}
+
+function downloadResult() {
+
+    let text = "Polling Center Results\n\n";
+
+    completed.forEach(v => {
+        text += `${v.name} -> ${v.symbol}\n`;
+    });
+
+    text += `\nFinal Count:\nStar: ${star}\nCircle: ${circle}\nTriangle: ${triangle}`;
+
+    let blob = new Blob([text], { type: "text/plain" });
+    let a = document.createElement("a");
+
+    a.href = URL.createObjectURL(blob);
+    a.download = "results.txt";
+    a.click();
+}
+
+function render() {
+
+    let html = "";
+
+    for (let i = 0; i < LINES; i++) {
+        html += `<div class="line-box">
+                    <h3>Line ${i + 1}</h3>
+                    <p>Waiting: ${lines[i].length}</p>`;
+
+        lines[i].forEach(v => {
+            html += `<p>${v.name}</p>`;
+        });
+
+        html += `</div>`;
+    }
+
+    document.getElementById("lines").innerHTML = html;
+
+    document.getElementById("star").innerText = star;
+    document.getElementById("circle").innerText = circle;
+    document.getElementById("triangle").innerText = triangle;
+}
+
+render();
+</script>
+
+</body>
+</html>
